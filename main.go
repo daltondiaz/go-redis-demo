@@ -17,7 +17,7 @@ func main() {
 	fmt.Println("starting server")
 	api := NewApi()
 	http.HandleFunc("/api", api.Handler)
-	http.ListenAndServe(fmt.Sprinf(":%s", os.Getenv("PORT")), nil)
+	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), nil)
 }
 
 func (a *API) Handler(w http.ResponseWriter, r *http.Request) {
@@ -90,12 +90,25 @@ type API struct {
 }
 
 func NewApi() *API {
-	redisAddress := fmt.Sprintf("%s:6379", os.Getenv("REDIS_URL"))
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     redisAddress,
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
+	var opts *redis.Options
+
+	if os.Getenv("LOCAL") == "true" {
+		redisAddress := fmt.Sprintf("%s:6379", os.Getenv("REDIS_URL"))
+		opts = &redis.Options{
+			Addr:     redisAddress,
+			Password: "", // no password set
+			DB:       0,  // use default DB
+		}
+	} else {
+		builtOpts, err := redis.ParseURL(os.Getenv("REDIS_URL"))
+		if err != nil {
+			panic(err)
+		}
+		opts = builtOpts
+	}
+
+	rdb := redis.NewClient(opts)
+
 	return &API{
 		cache: rdb,
 	}
