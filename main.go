@@ -64,7 +64,7 @@ func (a *API) getData(ctx context.Context, q string) ([]NominatimResponse, bool,
 			return nil, false, err
 		}
 		//set the value
-		err = a.cache.Set(ctx, q, bytes.NewBuffer(b).Bytes(), time.Second+15).Err()
+		err = a.cache.Set(ctx, q, bytes.NewBuffer(b).Bytes(), time.Second*15).Err()
 		if err != nil {
 			return nil, false, err
 		}
